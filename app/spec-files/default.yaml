@@ -1,277 +1,327 @@
-# this is an example of the Uber API
-# as a demonstration of an API spec in YAML
 swagger: '2.0'
 info:
-  title: Uber API
-  description: Move your app forward with the Uber API
-  version: "1.0.0"
-# the domain of the service
-host: api.uber.com
-# array of all schemes that your API supports
+  title: Popcash API
+  version: 1.0.0
+host: api.popcash.net
+#host: localhost:8080
 schemes:
+  - http
   - https
-# will be prefixed to all paths
+
 basePath: /v1
+
 produces:
   - application/json
+
+parameters:
+  api_key:
+    name: api_key
+    in: query
+    required: true
+    type: string
+    description: Your api key
+
 paths:
-  /products:
+  /campaigns:
     get:
-      summary: Product Types
+      summary: List all campaigns
       description: |
-        The Products endpoint returns information about the *Uber* products
-        offered at a given location. The response includes the display name
-        and other details about each product, and lists the products in the
-        proper display order.
+        List all campaigns for the current user.
       parameters:
-        - name: latitude
+        - $ref: "#/parameters/api_key"
+        - name: status
           in: query
-          description: Latitude component of location.
-          required: true
-          type: number
-          format: double
-        - name: longitude
-          in: query
-          description: Longitude component of location.
-          required: true
-          type: number
-          format: double
+          description: Filter campaigns by status
+          required: false
+          type: string
+          enum: ['pending', 'running', 'out of funds', 'paused', 'banned', 'rejected']
+
       tags:
-        - Products
+        - Campaigns
       responses:
-        200:
-          description: An array of products
+        '200':
+          description: An array of campaigns
           schema:
             type: array
             items:
-              $ref: '#/definitions/Product'
-        default:
+              $ref: '#/definitions/CampaignSummary'
+        '500':
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /estimates/price:
+
+  /campaigns/{id}:
     get:
-      summary: Price Estimates
+      summary: Get campaign details.
       description: |
-        The Price Estimates endpoint returns an estimated price range
-        for each product offered at a given location. The price estimate is
-        provided as a formatted string with the full price range and the localized
-        currency symbol.<br><br>The response also includes low and high estimates,
-        and the [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code for
-        situations requiring currency conversion. When surge is active for a particular
-        product, its surge_multiplier will be greater than 1, but the price estimate
-        already factors in this multiplier.
+        Get all the deils about a campaign by id.
       parameters:
-        - name: start_latitude
-          in: query
-          description: Latitude component of start location.
+        - $ref: "#/parameters/api_key"
+        - name: id
+          in: path
+          description: Campaign id
           required: true
           type: number
-          format: double
-        - name: start_longitude
-          in: query
-          description: Longitude component of start location.
-          required: true
-          type: number
-          format: double
-        - name: end_latitude
-          in: query
-          description: Latitude component of end location.
-          required: true
-          type: number
-          format: double
-        - name: end_longitude
-          in: query
-          description: Longitude component of end location.
-          required: true
-          type: number
-          format: double
       tags:
-        - Estimates
+        - Campaigns
       responses:
-        200:
-          description: An array of price estimates by product
+        '200':
+          description: An array of campaigns
           schema:
             type: array
             items:
-              $ref: '#/definitions/PriceEstimate'
-        default:
+              $ref: '#/definitions/Campaign'
+        '500':
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /estimates/time:
-    get:
-      summary: Time Estimates
-      description: The Time Estimates endpoint returns ETAs for all products offered at a given location, with the responses expressed as integers in seconds. We recommend that this endpoint be called every minute to provide the most accurate, up-to-date ETAs.
+
+  /campaigns/{id}/start:
+    post:
+      summary: Starts a campaign.
       parameters:
-        - name: start_latitude
-          in: query
-          description: Latitude component of start location.
+        - $ref: "#/parameters/api_key"
+        - name: id
+          in: path
+          description: Campaign id
           required: true
           type: number
-          format: double
-        - name: start_longitude
-          in: query
-          description: Longitude component of start location.
+      tags:
+        - Campaigns
+      responses:
+        '200':
+          description: Campaign response
+          schema:
+            $ref: '#/definitions/StartStopResponse'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /campaigns/{id}/pause:
+    post:
+      summary: Pause a campaign.
+      parameters:
+        - $ref: "#/parameters/api_key"
+        - name: id
+          in: path
+          description: Campaign id
           required: true
           type: number
-          format: double
-        - name: customer_uuid
-          in: query
-          type: string
-          format: uuid
-          description: Unique customer identifier to be used for experience customization.
-        - name: product_id
-          in: query
-          type: string
-          description: Unique identifier representing a specific product for a given latitude & longitude.
       tags:
-        - Estimates
+        - Campaigns
       responses:
-        200:
-          description: An array of products
+        '200':
+          description: Campaign response
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Product'
-        default:
+            $ref: '#/definitions/StartStopResponse'
+        '500':
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /me:
-    get:
-      summary: User Profile
-      description: The User Profile endpoint returns information about the Uber user that has authorized with the application.
-      tags:
-        - User
-      responses:
-        200:
-          description: Profile information for a user
-          schema:
-            $ref: '#/definitions/Profile'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  /history:
-    get:
-      summary: User Activity
-      description: The User Activity endpoint returns data about a user's lifetime activity with Uber. The response will include pickup locations and times, dropoff locations and times, the distance of past requests, and information about which products were requested.<br><br>The history array in the response will have a maximum length based on the limit parameter. The response value count may exceed limit, therefore subsequent API requests may be necessary.
+
+  /campaigns/{id}/targeting:
+    post:
+      summary: Change targeting for a campaign.
+      description: |
+        Targeting can be including r excluding. You must provide the type of targeting, sites id and wheter
+        this rules will be appended to existing ones (default behaviour) or will replace the existing ones.
       parameters:
-        - name: offset
-          in: query
-          type: integer
-          format: int32
-          description: Offset the list of returned results by this amount. Default is zero.
-        - name: limit
-          in: query
-          type: integer
-          format: int32
-          description: Number of items to retrieve. Default is 5, maximum is 100.
-      tags:
-        - User
-      responses:
-        200:
-          description: History information for the given user
+        - $ref: "#/parameters/api_key"
+        - name: id
+          in: path
+          description: Campaign id
+          required: true
+          type: number
+        - name: targeting
+          in: body
+          description: Targeting object
+          required: true
           schema:
-            $ref: '#/definitions/Activities'
-        default:
+            $ref: '#/definitions/Targeting'
+      consumes: [ "application/json" ]
+      tags:
+        - Campaigns
+      responses:
+        '200':
+          description: Campaign response
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '500':
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+
+  /campaigns/{id}/adjust-budget:
+    post:
+      summary: Adjust budget for a campaign.
+      description: |
+        You can add or withdraw money to a campaign buget. If you want to add money adjust with a positive amount
+        If you want to withdraw adjust it with a negative amount.
+      parameters:
+        - $ref: "#/parameters/api_key"
+        - name: id
+          in: path
+          description: Campaign id
+          required: true
+          type: number
+        - name: budget
+          in: body
+          description: Adjust budget object
+          required: true
+          schema:
+            $ref: '#/definitions/AdjustBudget'
+      consumes: [ "application/json" ]
+      tags:
+        - Campaigns
+      responses:
+        '200':
+          description: Campaign response
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+
 definitions:
-  Product:
+  CampaignSummary:
     type: object
     properties:
-      product_id:
-        type: string
-        description: Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles.
-      description:
-        type: string
-        description: Description of product.
-      display_name:
-        type: string
-        description: Display name of product.
-      capacity:
-        type: string
-        description: Capacity of product. For example, 4 people.
-      image:
-        type: string
-        description: Image URL representing the product.
-  PriceEstimate:
-    type: object
-    properties:
-      product_id:
-        type: string
-        description: Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles
-      currency_code:
-        type: string
-        description: "[ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code."
-      display_name:
-        type: string
-        description: Display name of product.
-      estimate:
-        type: string
-        description: Formatted string of estimate in local currency of the start location. Estimate could be a range, a single number (flat rate) or "Metered" for TAXI.
-      low_estimate:
+      campaignId:
         type: number
-        description: Lower bound of the estimated price.
-      high_estimate:
+        description: Unique identifier for campaign.
+      name:
+        type: string
+        description: Campaign name.
+      url:
+        type: string
+        description: Campaign URL.
+      totalBudget:
         type: number
-        description: Upper bound of the estimated price.
-      surge_multiplier:
+        description: Total budget for this campaign.
+      remainingBudget:
         type: number
-        description: Expected surge multiplier. Surge is active if surge_multiplier is greater than 1. Price estimate already factors in the surge multiplier.
-  Profile:
+        description: Remaining budget for this campaign.
+      bid:
+        type: number
+        description: Current bid for campaign.
+      status:
+        type: string
+        description: Current status of campaign.
+  Campaign:
     type: object
     properties:
-      first_name:
+      campaignId:
+        type: number
+        description: Unique identifier for campaign.
+      name:
         type: string
-        description: First name of the Uber user.
-      last_name:
+        description: Campaign name.
+      url:
         type: string
-        description: Last name of the Uber user.
-      email:
+        description: Campaign URL.
+      totalBudget:
+        type: number
+        description: Total budget for this campaign.
+      remainingBudget:
+        type: number
+        description: Remaining budget for this campaign.
+      bid:
+        type: number
+        description: Current bid for campaign.
+      status:
         type: string
-        description: Email address of the Uber user
-      picture:
-        type: string
-        description: Image URL of the Uber user.
-      promo_code:
-        type: string
-        description: Promo code of the Uber user.
-  Activity:
-    type: object
-    properties:
-      uuid:
-        type: string
-        description: Unique identifier for the activity
-  Activities:
-    type: object
-    properties:
-      offset:
-        type: integer
-        format: int32
-        description: Position in pagination.
-      limit:
-        type: integer
-        format: int32
-        description: Number of items to retrieve (100 max).
-      count:
-        type: integer
-        format: int32
-        description: Total number of items available.
-      history:
+        description: Current status of campaign.
+      included:
         type: array
         items:
-          $ref: '#/definitions/Activity'
+          type: number
+          description: Id of included sites
+      excluded:
+        type: array
+        items:
+          type: number
+          description: Id of excluded sites
+      countries:
+        type: array
+        items:
+          type: string
+          description: '2 digit country code (ISO 3166-2)'
+      operating_systems:
+        type: array
+        items:
+          $ref: '#/definitions/SimpleObject'
+          description: Target operating systems
+      categories:
+        type: array
+        items:
+          $ref: '#/definitions/SimpleObject'
+          description: Target operating systems
+      browsers:
+        type: array
+        items:
+          $ref: '#/definitions/SimpleObject'
+          description: Target operating systems
+
+  SimpleObject:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+
+  StartStopResponse:
+    type: object
+    properties:
+      campaignId:
+        type: string
+      message:
+        type: string
+
+  MessageResponse:
+    type: object
+    properties:
+      message:
+        type: string
   Error:
     type: object
     properties:
-      code:
+      status:
         type: integer
         format: int32
-      message:
+        description: Status Code
+      err:
         type: string
-      fields:
+        description: Error unique identifier. Contact support asking for this error code.
+
+  AdjustBudget:
+    type: object
+    properties:
+      amount:
+        type: number
+        description: Amount of money (positive or negative) to be added or withdrawn to/from campaign budget
+      start:
         type: string
+        default: 'true'
+        enum: ['true', 'false']
+        description: Wheter to start or not the campaign after adjustement
+
+  Targeting:
+    type: object
+    properties:
+      targeting:
+        type: string
+        description: Status Code
+        default: "included"
+        enum: ["included", "excluded"]
+      siteList:
+        type: array
+        items:
+          type: number
+        description: Ids for sites to be included or excluded
+      mode:
+        type: string
+        default: replace
+        enum: ["append", "replace"]
