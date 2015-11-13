@@ -35,7 +35,7 @@ paths:
           required: false
           type: string
           enum: ['pending', 'running', 'out of funds', 'paused', 'banned', 'rejected']
-
+          
       tags:
         - Campaigns
       responses:
@@ -49,7 +49,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
+            
   /campaigns/{id}:
     get:
       summary: Get campaign details.
@@ -75,7 +75,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
+            
   /campaigns/{id}/start:
     post:
       summary: Starts a campaign.
@@ -96,8 +96,8 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
+            $ref: '#/definitions/Error'            
+            
   /campaigns/{id}/pause:
     post:
       summary: Pause a campaign.
@@ -118,8 +118,8 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
+            $ref: '#/definitions/Error'            
+            
   /campaigns/{id}/targeting:
     post:
       summary: Change targeting for a campaign.
@@ -137,7 +137,7 @@ paths:
           in: body
           description: Targeting object
           required: true
-          schema:
+          schema: 
             $ref: '#/definitions/Targeting'
       consumes: [ "application/json" ]
       tags:
@@ -150,8 +150,8 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
+            $ref: '#/definitions/Error'            
+            
   /campaigns/{id}/adjust-budget:
     post:
       summary: Adjust budget for a campaign.
@@ -169,7 +169,7 @@ paths:
           in: body
           description: Adjust budget object
           required: true
-          schema:
+          schema: 
             $ref: '#/definitions/AdjustBudget'
       consumes: [ "application/json" ]
       tags:
@@ -182,8 +182,8 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
-
+            $ref: '#/definitions/Error'            
+            
 definitions:
   CampaignSummary:
     type: object
@@ -232,7 +232,7 @@ definitions:
         description: Current bid for campaign.
       status:
         type: string
-        description: Current status of campaign.
+        description: Current status of campaign. 
       included:
         type: array
         items:
@@ -263,7 +263,7 @@ definitions:
         items:
           $ref: '#/definitions/SimpleObject'
           description: Target operating systems
-
+          
   SimpleObject:
     type: object
     properties:
@@ -271,7 +271,7 @@ definitions:
         type: string
       name:
         type: string
-
+      
   StartStopResponse:
     type: object
     properties:
@@ -284,7 +284,7 @@ definitions:
     type: object
     properties:
       message:
-        type: string
+        type: string      
   Error:
     type: object
     properties:
@@ -295,11 +295,11 @@ definitions:
       err:
         type: string
         description: Error unique identifier. Contact support asking for this error code.
-
+  
   AdjustBudget:
     type: object
     properties:
-      amount:
+      amount: 
         type: number
         description: Amount of money (positive or negative) to be added or withdrawn to/from campaign budget
       start:
@@ -307,7 +307,7 @@ definitions:
         default: 'true'
         enum: ['true', 'false']
         description: Wheter to start or not the campaign after adjustement
-
+  
   Targeting:
     type: object
     properties:
@@ -325,3 +325,4 @@ definitions:
         type: string
         default: replace
         enum: ["append", "replace"]
+        
