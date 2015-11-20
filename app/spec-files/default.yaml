@@ -236,6 +236,7 @@ paths:
           type: string
       tags:
         - Campaigns
+        - Reports
       responses:
         '200':
           description: Report Id
@@ -262,6 +263,9 @@ paths:
           description: Report Id
           required: true
           type: string
+      tags:
+        - Campaigns
+        - Reports
       responses:
         '200':
           description: Report text
