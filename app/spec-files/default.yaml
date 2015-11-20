@@ -3,16 +3,12 @@ info:
   title: Popcash API
   version: 1.0.0
 host: api.popcash.net
-#host: localhost:8080
 schemes:
   - http
   - https
-
 basePath: /v1
-
 produces:
   - application/json
-
 parameters:
   api_key:
     name: api_key
@@ -20,7 +16,6 @@ parameters:
     required: true
     type: string
     description: Your api key
-
 paths:
   /campaigns:
     get:
@@ -28,14 +23,19 @@ paths:
       description: |
         List all campaigns for the current user.
       parameters:
-        - $ref: "#/parameters/api_key"
+        - $ref: '#/parameters/api_key'
         - name: status
           in: query
           description: Filter campaigns by status
           required: false
           type: string
-          enum: ['pending', 'running', 'out of funds', 'paused', 'banned', 'rejected']
-          
+          enum:
+            - pending
+            - running
+            - out of funds
+            - paused
+            - banned
+            - rejected
       tags:
         - Campaigns
       responses:
@@ -49,14 +49,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
-  /campaigns/{id}:
+  '/campaigns/{id}':
     get:
       summary: Get campaign details.
       description: |
         Get all the deils about a campaign by id.
       parameters:
-        - $ref: "#/parameters/api_key"
+        - $ref: '#/parameters/api_key'
         - name: id
           in: path
           description: Campaign id
@@ -75,12 +74,11 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
-  /campaigns/{id}/start:
+  '/campaigns/{id}/start':
     post:
       summary: Starts a campaign.
       parameters:
-        - $ref: "#/parameters/api_key"
+        - $ref: '#/parameters/api_key'
         - name: id
           in: path
           description: Campaign id
@@ -96,13 +94,12 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'            
-            
-  /campaigns/{id}/pause:
+            $ref: '#/definitions/Error'
+  '/campaigns/{id}/pause':
     post:
       summary: Pause a campaign.
       parameters:
-        - $ref: "#/parameters/api_key"
+        - $ref: '#/parameters/api_key'
         - name: id
           in: path
           description: Campaign id
@@ -118,16 +115,18 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'            
-            
-  /campaigns/{id}/targeting:
+            $ref: '#/definitions/Error'
+  '/campaigns/{id}/targeting':
     post:
       summary: Change targeting for a campaign.
-      description: |
-        Targeting can be including r excluding. You must provide the type of targeting, sites id and wheter
-        this rules will be appended to existing ones (default behaviour) or will replace the existing ones.
+      description: >
+        Targeting can be including r excluding. You must provide the type of
+        targeting, sites id and wheter
+
+        this rules will be appended to existing ones (default behaviour) or will
+        replace the existing ones.
       parameters:
-        - $ref: "#/parameters/api_key"
+        - $ref: '#/parameters/api_key'
         - name: id
           in: path
           description: Campaign id
@@ -137,9 +136,10 @@ paths:
           in: body
           description: Targeting object
           required: true
-          schema: 
+          schema:
             $ref: '#/definitions/Targeting'
-      consumes: [ "application/json" ]
+      consumes:
+        - application/json
       tags:
         - Campaigns
       responses:
@@ -150,16 +150,17 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'            
-            
-  /campaigns/{id}/adjust-budget:
+            $ref: '#/definitions/Error'
+  '/campaigns/{id}/adjust-budget':
     post:
       summary: Adjust budget for a campaign.
-      description: |
-        You can add or withdraw money to a campaign buget. If you want to add money adjust with a positive amount
+      description: >
+        You can add or withdraw money to a campaign buget. If you want to add
+        money adjust with a positive amount
+
         If you want to withdraw adjust it with a negative amount.
       parameters:
-        - $ref: "#/parameters/api_key"
+        - $ref: '#/parameters/api_key'
         - name: id
           in: path
           description: Campaign id
@@ -169,9 +170,10 @@ paths:
           in: body
           description: Adjust budget object
           required: true
-          schema: 
+          schema:
             $ref: '#/definitions/AdjustBudget'
-      consumes: [ "application/json" ]
+      consumes:
+        - application/json
       tags:
         - Campaigns
       responses:
@@ -182,8 +184,73 @@ paths:
         '500':
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'            
-            
+            $ref: '#/definitions/Error'
+  '/campaigns/{id}/reports/{groupBy}/{startDate}/{endDate}':
+    get:
+      summary: Create report for a campaign.
+      description: >
+        You can create reports for a campaign.
+      parameters:
+        - $ref: '#/parameters/api_key'
+        - name: id
+          in: path
+          description: Campaign id
+          required: true
+          type: number
+        - name: groupBy
+          in: path
+          description: Group by clause
+          required: true
+          type: string
+          enum:
+            - day
+            - cid
+            - siteid
+        - name: startDate
+          in: path
+          description: Start date in ISO 8601 format (example 2015-11-12)
+          required: true
+          type: string
+        - name: endDate
+          in: path
+          description: End date in ISO 8601 format (example 2015-11-12)
+          required: true
+          type: string
+      tags:
+        - Campaigns
+      responses:
+        '200':
+          description: Report Id
+          schema:
+            $ref: '#/definitions/CreateReportResponse'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/campaigns/{id}/reports/{reportId}':
+    get:
+      summary: Get report by id
+      description: >
+        When the report is ready you can retrieve it. It is stored for 24 hours
+      parameters:
+        - $ref: '#/parameters/api_key'
+        - name: id
+          in: path
+          description: Campaign id
+          required: true
+          type: number
+        - name: reportId
+          in: path
+          description: Report Id
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Report text
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
   CampaignSummary:
     type: object
@@ -232,7 +299,7 @@ definitions:
         description: Current bid for campaign.
       status:
         type: string
-        description: Current status of campaign. 
+        description: Current status of campaign.
       included:
         type: array
         items:
@@ -247,7 +314,7 @@ definitions:
         type: array
         items:
           type: string
-          description: '2 digit country code (ISO 3166-2)'
+          description: 2 digit country code (ISO 3166-2)
       operating_systems:
         type: array
         items:
@@ -263,7 +330,6 @@ definitions:
         items:
           $ref: '#/definitions/SimpleObject'
           description: Target operating systems
-          
   SimpleObject:
     type: object
     properties:
@@ -271,7 +337,6 @@ definitions:
         type: string
       name:
         type: string
-      
   StartStopResponse:
     type: object
     properties:
@@ -279,12 +344,16 @@ definitions:
         type: string
       message:
         type: string
-
   MessageResponse:
     type: object
     properties:
       message:
-        type: string      
+        type: string
+  CreateReportResponse:
+    type: object
+    properties:
+      reportId:
+        type: string
   Error:
     type: object
     properties:
@@ -295,27 +364,29 @@ definitions:
       err:
         type: string
         description: Error unique identifier. Contact support asking for this error code.
-  
   AdjustBudget:
     type: object
     properties:
-      amount: 
+      amount:
         type: number
         description: Amount of money (positive or negative) to be added or withdrawn to/from campaign budget
       start:
         type: string
         default: 'true'
-        enum: ['true', 'false']
+        enum:
+          - 'true'
+          - 'false'
         description: Wheter to start or not the campaign after adjustement
-  
   Targeting:
     type: object
     properties:
       targeting:
         type: string
         description: Status Code
-        default: "included"
-        enum: ["included", "excluded"]
+        default: included
+        enum:
+          - included
+          - excluded
       siteList:
         type: array
         items:
@@ -324,5 +395,6 @@ definitions:
       mode:
         type: string
         default: replace
-        enum: ["append", "replace"]
-        
+        enum:
+          - append
+          - replace
