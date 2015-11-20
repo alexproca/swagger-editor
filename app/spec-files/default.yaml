@@ -204,8 +204,8 @@ paths:
           type: string
           enum:
             - day
-            - cid
-            - siteid
+            - country
+            - source
         - name: startDate
           in: path
           description: Start date in ISO 8601 format (example 2015-11-12)
@@ -227,18 +227,18 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/campaigns/{id}/reports/{reportId}':
+  '/campaigns/{campaignId}/reports/{reportId}':
     get:
       summary: Get report by id
       description: >
         When the report is ready you can retrieve it. It is stored for 24 hours
       parameters:
         - $ref: '#/parameters/api_key'
-        - name: id
+        - name: campaignId
           in: path
           description: Campaign id
           required: true
-          type: number
+          type: string
         - name: reportId
           in: path
           description: Report Id
