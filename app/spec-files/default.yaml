@@ -17,6 +17,24 @@ parameters:
     type: string
     description: Your api key
 paths:
+  /account:
+    get:
+      summary: Account information
+      description: |
+        Get information about current acount
+      parameters:
+        - $ref: '#/parameters/api_key'
+      tags:
+        - Account
+      responses:
+        '200':
+          description: Account information
+          schema:
+            $ref: '#/definitions/Account'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   /campaigns:
     get:
       summary: List all campaigns
@@ -252,6 +270,60 @@ paths:
           schema:
             $ref: '#/definitions/Error'
 definitions:
+  Account:
+    type: object
+    properties:
+      uid:
+        type: number
+        description: User Id
+      username:
+        type: string
+        description: Username
+      email:
+        type: string
+        description: User email
+      name:
+        type: string
+        description: Display user name
+      balance:
+        type: number
+        description: Account balance
+      campaignsCount:
+        type: number
+        description: The number of campaigns
+      campaigns:
+        type: object
+        properties:
+          'pending':
+            type: array
+            items:
+              $ref: '#/definitions/CampaignSummary'
+              description: Out of funds campaigns
+          'running':
+            type: array
+            items:
+              $ref: '#/definitions/CampaignSummary'
+              description: Out of funds campaigns
+          'out of funds':
+            type: array
+            items:
+              $ref: '#/definitions/CampaignSummary'
+              description: Out of funds campaigns
+          'paused':
+            type: array
+            items:
+              $ref: '#/definitions/CampaignSummary'
+              description: Out of funds campaigns
+          'banned':
+            type: array
+            items:
+              $ref: '#/definitions/CampaignSummary'
+              description: Out of funds campaigns
+          'rejected':
+            type: array
+            items:
+              $ref: '#/definitions/CampaignSummary'
+              description: Out of funds campaigns
   CampaignSummary:
     type: object
     properties:
@@ -336,6 +408,13 @@ definitions:
       id:
         type: string
       name:
+        type: string
+  CampaignSummary:
+    type: object
+    properties:
+      campaignId:
+        type: string
+      status:
         type: string
   StartStopResponse:
     type: object
